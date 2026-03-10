@@ -14,23 +14,20 @@ export function AdminCategories() {
     setFormData({ name: category.name, slug: category.slug, description: category.description });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      deleteCategory(id);
+      await deleteCategory(id);
       toast.success('Category deleted successfully');
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEditing) {
-      updateCategory(isEditing, formData);
+    if (isEditing && isEditing !== 'new') {
+      await updateCategory(isEditing, formData);
       toast.success('Category updated successfully');
     } else {
-      addCategory({
-        id: `cat-${Date.now()}`,
-        ...formData,
-      });
+      await addCategory(formData);
       toast.success('Category added successfully');
     }
     setIsEditing(null);

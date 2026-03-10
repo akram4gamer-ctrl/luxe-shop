@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useOrderStore, OrderStatus } from '@/store/orderStore';
+import { OrderStatus } from '@/store/orderStore';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, Package, Truck, Clock, Save } from 'lucide-react';
+import { ArrowLeft, Package, Truck, Clock, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Pending Payment',
@@ -25,20 +26,43 @@ const STATUS_FLOW: OrderStatus[] = [
 export function AdminOrderDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getOrderById, updateOrderStatus, updateOrderTracking, updateAdminNotes } = useOrderStore();
   
-  const order = id ? getOrderById(id) : undefined;
+  const [order, setOrder] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [trackingNumber, setTrackingNumber] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [statusNote, setStatusNote] = useState('');
 
   useEffect(() => {
-    if (order) {
-      setTrackingNumber(order.trackingNumber || '');
-      setAdminNotes(order.adminNotes || '');
+    fetchOrder();
+  }, [id]);
+
+  const fetchOrder = async () => {
+    if (!id) return;
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (data) {
+      setOrder(data);
+      setTrackingNumber(data.tracking_number || '');
+      setAdminNotes(data.admin_notes || '');
     }
-  }, [order]);
+    setIsLoading(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" />
+        <p className="text-gray-500">Loading order details...</p>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -49,25 +73,44 @@ export function AdminOrderDetail() {
     );
   }
 
-  const handleStatusChange = (newStatus: OrderStatus) => {
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     if (window.confirm(`Are you sure you want to change status to ${STATUS_LABELS[newStatus]}?`)) {
-      updateOrderStatus(order.id, newStatus, statusNote || `Status updated to ${STATUS_LABELS[newStatus]}`);
-      setStatusNote('');
-      toast.success('Order status updated');
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', order.id);
+        
+      if (!error) {
+        setOrder({ ...order, status: newStatus });
+        setStatusNote('');
+        toast.success('Order status updated');
+      } else {
+        toast.error('Failed to update status');
+      }
     }
   };
 
-  const handleSaveTracking = () => {
-    updateOrderTracking(order.id, trackingNumber);
-    toast.success('Tracking number saved');
+  const handleSaveTracking = async () => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ tracking_number: trackingNumber })
+      .eq('id', order.id);
+      
+    if (!error) toast.success('Tracking number saved');
+    else toast.error('Failed to save tracking');
   };
 
-  const handleSaveNotes = () => {
-    updateAdminNotes(order.id, adminNotes);
-    toast.success('Admin notes saved');
+  const handleSaveNotes = async () => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ admin_notes: adminNotes })
+      .eq('id', order.id);
+      
+    if (!error) toast.success('Admin notes saved');
+    else toast.error('Failed to save notes');
   };
 
-  const currentStatusIndex = STATUS_FLOW.indexOf(order.status);
+  const currentStatusIndex = STATUS_FLOW.indexOf(order.status as OrderStatus) !== -1 ? STATUS_FLOW.indexOf(order.status as OrderStatus) : 0;
 
   return (
     <div className="max-w-5xl mx-auto pb-12">
@@ -77,9 +120,9 @@ export function AdminOrderDetail() {
         </Link>
         <div>
           <h2 className="text-2xl font-serif flex items-center gap-3">
-            Order <span className="font-mono text-gold-600">{order.orderNumber}</span>
+            Order <span className="font-mono text-gold-600">{order.id.split('-')[0].toUpperCase()}</span>
           </h2>
-          <p className="text-sm text-gray-500">Placed on {new Date(order.createdAt).toLocaleString()}</p>
+          <p className="text-sm text-gray-500">Placed on {new Date(order.created_at).toLocaleString()}</p>
         </div>
       </div>
 
@@ -130,17 +173,14 @@ export function AdminOrderDetail() {
             <div className="mt-8">
               <h4 className="text-sm font-medium text-gray-900 mb-4 uppercase tracking-wider">Status History</h4>
               <div className="space-y-4">
-                {[...order.statusHistory].reverse().map((history, i) => (
-                  <div key={i} className="flex gap-4 text-sm">
-                    <div className="w-32 text-gray-500 flex-shrink-0">
-                      {new Date(history.timestamp).toLocaleString()}
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-900">{STATUS_LABELS[history.status]}</span>
-                      {history.note && <p className="text-gray-500 mt-0.5">{history.note}</p>}
-                    </div>
+                <div className="flex gap-4 text-sm">
+                  <div className="w-32 text-gray-500 flex-shrink-0">
+                    {new Date(order.created_at).toLocaleString()}
                   </div>
-                ))}
+                  <div>
+                    <span className="font-medium text-gray-900">Order Created</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -149,30 +189,18 @@ export function AdminOrderDetail() {
           <div className="bg-white border border-gray-200 rounded-sm p-6">
             <h3 className="text-lg font-medium mb-6">Order Items</h3>
             <div className="space-y-4 divide-y divide-gray-100">
-              {order.items.map((item) => (
-                <div key={item.productId} className="pt-4 first:pt-0 flex gap-4">
-                  <div className="w-16 h-16 bg-gray-50 flex-shrink-0">
-                    {item.image ? (
-                      <img src={item.image} alt={item.productName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200"></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">
-                      {item.productName}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="font-medium text-right">
-                    {formatCurrency(item.priceAtPurchase * item.quantity)}
-                  </div>
+              <div className="pt-4 first:pt-0 flex gap-4">
+                <div className="w-16 h-16 bg-gray-50 flex-shrink-0 flex items-center justify-center">
+                  <Package className="w-6 h-6 text-gray-400" />
                 </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-gray-200 flex justify-between items-center text-lg font-medium">
-              <span>Total</span>
-              <span className="text-gold-600">{formatCurrency(order.totalPriceCNY)}</span>
+                <div className="flex-1">
+                  <p className="font-medium">
+                    {order.product_name}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Variant: {order.product_variant}</p>
+                  <p className="text-sm text-gray-500 mt-1">Qty: {order.quantity}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -189,12 +217,30 @@ export function AdminOrderDetail() {
             <div className="space-y-3 text-sm">
               <div>
                 <span className="text-gray-500 block text-xs mb-1">Name</span>
-                <p className="font-medium">{order.customerName}</p>
+                <p className="font-medium">{order.customer_name}</p>
               </div>
+              {order.email && (
+                <div>
+                  <span className="text-gray-500 block text-xs mb-1">Email</span>
+                  <p>{order.email}</p>
+                </div>
+              )}
               <div>
                 <span className="text-gray-500 block text-xs mb-1">Phone</span>
                 <p>{order.phone}</p>
               </div>
+              {order.country && (
+                <div>
+                  <span className="text-gray-500 block text-xs mb-1">Country</span>
+                  <p>{order.country}</p>
+                </div>
+              )}
+              {order.city && (
+                <div>
+                  <span className="text-gray-500 block text-xs mb-1">City</span>
+                  <p>{order.city}</p>
+                </div>
+              )}
               <div>
                 <span className="text-gray-500 block text-xs mb-1">Shipping Address</span>
                 <p className="whitespace-pre-wrap leading-relaxed">{order.address}</p>

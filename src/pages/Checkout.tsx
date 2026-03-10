@@ -9,6 +9,7 @@ import { useCustomerAuthStore } from '@/store/customerAuthStore';
 import { formatCurrency, getEffectivePrice } from '@/lib/utils';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { motion } from 'motion/react';
+import { supabase } from '@/lib/supabase';
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -19,7 +20,10 @@ export function Checkout() {
   
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
+    email: user?.email || '',
     phone: user?.phone || '',
+    country: '',
+    city: '',
     address: '',
     notes: '',
   });
@@ -35,11 +39,28 @@ export function Checkout() {
     setIsSubmitting(true);
     
     try {
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 800));
-
       const orderNumber = generateOrderNumber();
       const now = new Date().toISOString();
+
+      // Insert into Supabase
+      const supabaseOrders = items.map(item => ({
+        customer_name: formData.fullName,
+        phone: formData.phone,
+        email: formData.email,
+        city: formData.city,
+        address: formData.address,
+        country: formData.country,
+        product_name: item.product.name,
+        product_variant: 'Default',
+        quantity: item.quantity,
+        notes: formData.notes,
+        status: 'pending'
+      }));
+
+      const { error: supabaseError } = await supabase.from('orders').insert(supabaseOrders);
+      if (supabaseError) {
+        throw new Error(supabaseError.message);
+      }
 
       const newOrder: Order = {
         id: crypto.randomUUID(),
@@ -54,7 +75,10 @@ export function Checkout() {
         })),
         totalPriceCNY: getCartTotal(),
         customerName: formData.fullName,
+        email: formData.email,
         phone: formData.phone,
+        country: formData.country,
+        city: formData.city,
         address: formData.address,
         notes: formData.notes,
         status: 'pending_payment',
@@ -118,6 +142,18 @@ export function Checkout() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 px-4 py-3 outline-none focus:border-gold-500 transition-colors bg-white"
+                    placeholder="john@example.com"
+                  />
+                </div>
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Phone Number</label>
                   <input
                     type="tel"
@@ -129,6 +165,31 @@ export function Checkout() {
                     placeholder="+86 123 4567 8900"
                   />
                 </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Country</label>
+                  <input
+                    type="text"
+                    name="country"
+                    required
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 px-4 py-3 outline-none focus:border-gold-500 transition-colors bg-white"
+                    placeholder="e.g., China, United States"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">City</label>
+                <input
+                  type="text"
+                  name="city"
+                  required
+                  value={formData.city}
+                  onChange={handleChange}
+                  className="w-full border border-gray-200 px-4 py-3 outline-none focus:border-gold-500 transition-colors bg-white"
+                  placeholder="e.g., Shanghai, Beijing, New York"
+                />
               </div>
 
               <div className="space-y-2">
@@ -140,7 +201,7 @@ export function Checkout() {
                   value={formData.address}
                   onChange={handleChange}
                   className="w-full border border-gray-200 px-4 py-3 outline-none focus:border-gold-500 transition-colors resize-y bg-white"
-                  placeholder="Street address, City, Province, Postal Code"
+                  placeholder="Street address, Province, Postal Code"
                 />
               </div>
 

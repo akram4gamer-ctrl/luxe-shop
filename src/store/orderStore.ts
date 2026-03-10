@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { idbStorage } from './storage';
 
 export type OrderStatus = 
   | 'pending_payment'
@@ -29,7 +30,10 @@ export interface Order {
   items: OrderItem[];
   totalPriceCNY: number;
   customerName: string;
+  email?: string;
   phone: string;
+  country?: string;
+  city?: string;
   address: string;
   notes?: string;
   adminNotes?: string;
@@ -83,6 +87,7 @@ export const useOrderStore = create<OrderState>()(
     }),
     {
       name: 'aura-orders',
+      storage: createJSONStorage(() => idbStorage),
     }
   )
 );

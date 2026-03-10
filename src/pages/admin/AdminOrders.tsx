@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useOrderStore, OrderStatus } from '@/store/orderStore';
+import { OrderStatus } from '@/store/orderStore';
 import { formatCurrency } from '@/lib/utils';
-import { Eye, Search, Filter } from 'lucide-react';
+import { Eye, Search, Filter, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending_payment: 'Pending Payment',
@@ -21,18 +22,33 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 export function AdminOrders() {
-  const { orders } = useOrderStore();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Sort orders by date descending
-  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-  const filteredOrders = sortedOrders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      setOrders(data);
+    }
+    setIsLoading(false);
+  };
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = (order.id && order.id.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                          (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -77,32 +93,39 @@ export function AdminOrders() {
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-medium">Order Number</th>
+                <th className="px-6 py-4 font-medium">Order ID</th>
                 <th className="px-6 py-4 font-medium">Date</th>
                 <th className="px-6 py-4 font-medium">Customer</th>
-                <th className="px-6 py-4 font-medium">Total</th>
+                <th className="px-6 py-4 font-medium">Product</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {paginatedOrders.map((order) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Loading orders...
+                  </td>
+                </tr>
+              ) : paginatedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-mono font-medium text-black">
-                    {order.orderNumber}
+                    {order.id.split('-')[0].toUpperCase()}
                   </td>
                   <td className="px-6 py-4 text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
-                    {order.customerName}
+                    {order.customer_name}
                   </td>
                   <td className="px-6 py-4 font-medium">
-                    {formatCurrency(order.totalPriceCNY)}
+                    {order.quantity}x {order.product_name}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}>
-                      {STATUS_LABELS[order.status]}
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status as OrderStatus] || 'bg-gray-100 text-gray-800'}`}>
+                      {STATUS_LABELS[order.status as OrderStatus] || order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -116,7 +139,7 @@ export function AdminOrders() {
                   </td>
                 </tr>
               ))}
-              {paginatedOrders.length === 0 && (
+              {!isLoading && paginatedOrders.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     No orders found matching your criteria.

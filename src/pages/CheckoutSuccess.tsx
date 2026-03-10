@@ -128,7 +128,10 @@ export function CheckoutSuccess() {
                 <h4 className="font-medium uppercase tracking-wider text-gray-900">Shipping Details</h4>
                 <div className="text-gray-600 space-y-1">
                   <p>{order.customerName}</p>
+                  {order.email && <p>{order.email}</p>}
                   <p>{order.phone}</p>
+                  {order.country && <p>{order.country}</p>}
+                  {order.city && <p>{order.city}</p>}
                   <p className="whitespace-pre-wrap">{order.address}</p>
                 </div>
               </div>

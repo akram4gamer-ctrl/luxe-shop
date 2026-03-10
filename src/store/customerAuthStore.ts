@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { idbStorage } from './storage';
 
 export interface Customer {
   id: string;
@@ -53,6 +54,7 @@ export const useCustomerAuthStore = create<CustomerAuthState>()(
     }),
     {
       name: 'aura-customer-auth',
+      storage: createJSONStorage(() => idbStorage),
     }
   )
 );

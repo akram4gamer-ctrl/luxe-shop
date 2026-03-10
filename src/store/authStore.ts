@@ -1,13 +1,26 @@
 import { create } from 'zustand';
+import { supabase } from '@/lib/supabase';
 
 interface AuthState {
   isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+  isLoading: boolean;
+  checkSession: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  isAuthenticated: false, // Default to false, require mock login
-  login: () => set({ isAuthenticated: true }),
-  logout: () => set({ isAuthenticated: false }),
+  isAuthenticated: false,
+  isLoading: true,
+  checkSession: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    set({ isAuthenticated: !!session, isLoading: false });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      set({ isAuthenticated: !!session, isLoading: false });
+    });
+  },
+  logout: async () => {
+    await supabase.auth.signOut();
+    set({ isAuthenticated: false });
+  },
 }));

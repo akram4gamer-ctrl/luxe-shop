@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { Product } from "@/types";
 import { getEffectivePrice } from "@/lib/utils";
+import { idbStorage } from "./storage";
 
 export interface CartItem {
   product: Product;
@@ -77,6 +78,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: "aura-cart-storage",
+      storage: createJSONStorage(() => idbStorage),
       partialize: (state) => ({ items: state.items }),
     },
   ),

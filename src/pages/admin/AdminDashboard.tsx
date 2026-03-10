@@ -11,9 +11,9 @@ export function AdminDashboard() {
   const { categories } = useCategoryStore();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      deleteProduct(id);
+      await deleteProduct(id);
     }
     setDeleteId(null);
   };

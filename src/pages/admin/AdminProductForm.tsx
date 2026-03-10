@@ -108,7 +108,7 @@ export function AdminProductForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.images.length === 0) {
@@ -148,15 +148,18 @@ export function AdminProductForm() {
       featured: formData.featured,
     };
 
-    if (isEdit && id) {
-      updateProduct(id, productData);
-      toast.success('Product updated successfully');
-    } else {
-      addProduct(productData);
-      toast.success('Product added successfully');
+    try {
+      if (isEdit && id) {
+        await updateProduct(id, productData);
+        toast.success('Product updated successfully');
+      } else {
+        await addProduct(productData);
+        toast.success('Product added successfully');
+      }
+      navigate('/admin');
+    } catch (error) {
+      toast.error('Failed to save product');
     }
-    
-    navigate('/admin');
   };
 
   return (

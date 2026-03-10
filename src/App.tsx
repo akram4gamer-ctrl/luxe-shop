@@ -1,4 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useProductStore } from "@/store/productStore";
+import { useCategoryStore } from "@/store/categoryStore";
 import { Home } from "@/pages/Home";
 import { Shop } from "@/pages/Shop";
 import { Category } from "@/pages/Category";
@@ -20,6 +23,14 @@ import { AdminSettings } from "@/pages/admin/AdminSettings";
 import { Toaster } from "sonner";
 
 export default function App() {
+  const { fetchProducts } = useProductStore();
+  const { fetchCategories } = useCategoryStore();
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
+
   return (
     <Router>
       <Toaster position="bottom-right" />
