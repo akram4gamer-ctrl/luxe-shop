@@ -81,9 +81,9 @@ export function AdminProductForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (e.g., limit to 500KB) to prevent localStorage quota exceeded
-    if (file.size > 500 * 1024) {
-      toast.error('File size must be less than 500KB. Please compress your image or use an image URL instead.');
+    // Check file size (e.g., limit to 10MB) to prevent localStorage quota exceeded
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB. Please compress your image or use an image URL instead.');
       return;
     }
 
@@ -295,7 +295,7 @@ export function AdminProductForm() {
             <div className="flex-1">
               <label className="flex items-center justify-center w-full border border-gray-200 border-dashed px-4 py-2 cursor-pointer hover:border-gold-500 hover:bg-gray-50 transition-colors">
                 <Upload className="w-4 h-4 mr-2 text-gray-500" />
-                <span className="text-sm text-gray-600">Upload File (Max 500KB)</span>
+                <span className="text-sm text-gray-600">Upload File (Max 10MB)</span>
                 <input 
                   type="file" 
                   accept="image/jpeg, image/png, image/webp" 
