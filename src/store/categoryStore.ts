@@ -26,26 +26,26 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
   },
   addCategory: async (category) => {
     const { error } = await supabase.from('categories').insert(category);
-    if (!error) {
-      await get().fetchCategories();
-    } else {
+    if (error) {
       console.error('Error adding category:', error);
+      throw error;
     }
+    await get().fetchCategories();
   },
   updateCategory: async (id, updatedFields) => {
     const { error } = await supabase.from('categories').update(updatedFields).eq('id', id);
-    if (!error) {
-      await get().fetchCategories();
-    } else {
+    if (error) {
       console.error('Error updating category:', error);
+      throw error;
     }
+    await get().fetchCategories();
   },
   deleteCategory: async (id) => {
     const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (!error) {
-      await get().fetchCategories();
-    } else {
+    if (error) {
       console.error('Error deleting category:', error);
+      throw error;
     }
+    await get().fetchCategories();
   },
 }));

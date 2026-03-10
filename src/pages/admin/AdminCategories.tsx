@@ -16,22 +16,31 @@ export function AdminCategories() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this category?')) {
-      await deleteCategory(id);
-      toast.success('Category deleted successfully');
+      try {
+        await deleteCategory(id);
+        toast.success('Category deleted successfully');
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to delete category');
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEditing && isEditing !== 'new') {
-      await updateCategory(isEditing, formData);
-      toast.success('Category updated successfully');
-    } else {
-      await addCategory(formData);
-      toast.success('Category added successfully');
+    try {
+      if (isEditing && isEditing !== 'new') {
+        await updateCategory(isEditing, formData);
+        toast.success('Category updated successfully');
+      } else {
+        await addCategory(formData);
+        toast.success('Category added successfully');
+      }
+      setIsEditing(null);
+      setFormData({ name: '', slug: '', description: '' });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save category');
+      console.error(error);
     }
-    setIsEditing(null);
-    setFormData({ name: '', slug: '', description: '' });
   };
 
   return (

@@ -51,11 +51,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
       featured: productData.featured
     };
     const { error } = await supabase.from('products').insert(dbProduct);
-    if (!error) {
-      await get().fetchProducts();
-    } else {
+    if (error) {
       console.error('Error adding product:', error);
+      throw error;
     }
+    await get().fetchProducts();
   },
   updateProduct: async (id, productData) => {
     const dbProduct: any = {};
@@ -71,18 +71,18 @@ export const useProductStore = create<ProductState>((set, get) => ({
     if (productData.featured !== undefined) dbProduct.featured = productData.featured;
 
     const { error } = await supabase.from('products').update(dbProduct).eq('id', id);
-    if (!error) {
-      await get().fetchProducts();
-    } else {
+    if (error) {
       console.error('Error updating product:', error);
+      throw error;
     }
+    await get().fetchProducts();
   },
   deleteProduct: async (id) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (!error) {
-      await get().fetchProducts();
-    } else {
+    if (error) {
       console.error('Error deleting product:', error);
+      throw error;
     }
+    await get().fetchProducts();
   }
 }));

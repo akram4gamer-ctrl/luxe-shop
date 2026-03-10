@@ -157,8 +157,9 @@ export function AdminProductForm() {
         toast.success('Product added successfully');
       }
       navigate('/admin');
-    } catch (error) {
-      toast.error('Failed to save product');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save product');
+      console.error(error);
     }
   };
 
