@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/ui/ProductCard";
 import { useProductStore } from "@/store/productStore";
 import { formatCurrency, getEffectivePrice, getDiscountPercentage } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
+import { useCustomerAuthStore } from "@/store/customerAuthStore";
 import { Minus, Plus, Star, Truck, Shield, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "motion/react";
@@ -23,6 +24,7 @@ export function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
   const setIsOpen = useCartStore((state) => state.setIsOpen);
+  const { isAuthenticated, setAuthModalOpen } = useCustomerAuthStore();
 
   if (!product) {
     return (
@@ -41,6 +43,10 @@ export function ProductDetail() {
   }
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
     addItem(product, quantity);
     toast.success(`Added ${quantity} ${product.name} to cart`);
     setIsOpen(true);

@@ -11,6 +11,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   in_shipping: 'In Shipping',
   arrived_waiting_pickup: 'Waiting Pickup',
   completed: 'Completed',
+  cancelled: 'Denied / Cancelled',
 };
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -19,6 +20,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   in_shipping: 'bg-purple-100 text-purple-800',
   arrived_waiting_pickup: 'bg-orange-100 text-orange-800',
   completed: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
 };
 
 export function AdminOrders() {
@@ -47,7 +49,7 @@ export function AdminOrders() {
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = (order.id && order.id.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    const matchesSearch = (order.id && String(order.id).toLowerCase().includes(searchTerm.toLowerCase())) || 
                           (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -112,7 +114,7 @@ export function AdminOrders() {
               ) : paginatedOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-mono font-medium text-black">
-                    {order.id.split('-')[0].toUpperCase()}
+                    {String(order.id).split('-')[0].toUpperCase()}
                   </td>
                   <td className="px-6 py-4 text-gray-500">
                     {new Date(order.created_at).toLocaleDateString()}

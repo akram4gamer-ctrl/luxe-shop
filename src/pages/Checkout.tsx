@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Container } from '@/components/ui/Container';
@@ -15,16 +15,25 @@ export function Checkout() {
   const navigate = useNavigate();
   const { items, getCartTotal, clearCart } = useCartStore();
   const { addOrder } = useOrderStore();
-  const { user } = useCustomerAuthStore();
+  const { user, isAuthenticated, setAuthModalOpen } = useCustomerAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/cart');
+      setAuthModalOpen(true);
+    }
+  }, [isAuthenticated, navigate, setAuthModalOpen]);
   
+  const defaultAddress = user?.addresses?.find(a => a.isDefault) || user?.addresses?.[0];
+
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    country: '',
-    city: '',
-    address: '',
+    country: defaultAddress?.country || user?.country || '',
+    city: defaultAddress?.city || user?.city || '',
+    address: defaultAddress?.address || user?.address || '',
     notes: '',
   });
 
@@ -54,7 +63,7 @@ export function Checkout() {
         product_variant: 'Default',
         quantity: item.quantity,
         notes: formData.notes,
-        status: 'pending'
+        status: 'pending_payment'
       }));
 
       const { error: supabaseError } = await supabase.from('orders').insert(supabaseOrders);
@@ -97,6 +106,10 @@ export function Checkout() {
     }
   };
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   if (items.length === 0) {
     return (
       <Layout>
@@ -127,6 +140,29 @@ export function Checkout() {
           <div className="flex-1">
             <h2 className="text-xl font-medium uppercase tracking-widest mb-8">Shipping Information</h2>
             
+            {user?.addresses && user.addresses.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-gray-700 mb-4">Saved Addresses</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {user.addresses.map(addr => (
+                    <div
+                      key={addr.id}
+                      onClick={() => setFormData(prev => ({ ...prev, address: addr.address, city: addr.city, country: addr.country }))}
+                      className={`border p-4 rounded-sm cursor-pointer transition-colors ${
+                        formData.address === addr.address && formData.city === addr.city && formData.country === addr.country
+                          ? 'border-gold-500 bg-gold-50'
+                          : 'border-gray-200 hover:border-gold-300 bg-white'
+                      }`}
+                    >
+                      {addr.isDefault && <span className="text-xs font-medium text-gold-600 mb-1 block">Default</span>}
+                      <p className="font-medium text-sm mb-1 text-gray-900">{addr.address}</p>
+                      <p className="text-gray-500 text-sm">{addr.city}, {addr.country}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">

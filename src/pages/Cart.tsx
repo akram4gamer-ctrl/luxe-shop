@@ -1,14 +1,17 @@
 import { Layout } from "@/components/layout/Layout";
 import { Container } from "@/components/ui/Container";
 import { buttonVariants } from "@/components/ui/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCartStore } from "@/store/cartStore";
+import { useCustomerAuthStore } from "@/store/customerAuthStore";
 import { formatCurrency, getEffectivePrice } from "@/lib/utils";
 import { Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { motion } from "motion/react";
 
 export function Cart() {
   const { items, removeItem, updateQuantity, getCartTotal } = useCartStore();
+  const { isAuthenticated, setAuthModalOpen } = useCustomerAuthStore();
+  const navigate = useNavigate();
 
   return (
     <Layout>
@@ -145,12 +148,18 @@ export function Cart() {
                   <span>{formatCurrency(getCartTotal())}</span>
                 </div>
 
-                <Link 
-                  to="/checkout"
+                <button
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setAuthModalOpen(true);
+                    } else {
+                      navigate("/checkout");
+                    }
+                  }}
                   className="w-full inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 disabled:pointer-events-none disabled:opacity-50 bg-black text-white hover:bg-gray-900 h-14 px-10 text-base uppercase tracking-widest"
                 >
                   Proceed to Checkout
-                </Link>
+                </button>
 
                 <p className="text-xs text-center text-gray-500 mt-4">
                   Taxes and shipping calculated at checkout

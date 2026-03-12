@@ -1,13 +1,16 @@
 import { X, Plus, Minus, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
+import { useCustomerAuthStore } from "@/store/customerAuthStore";
 import { formatCurrency, getEffectivePrice } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "../ui/Button";
 
 export function CartDrawer() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, getCartTotal } =
     useCartStore();
+  const { isAuthenticated, setAuthModalOpen } = useCustomerAuthStore();
+  const navigate = useNavigate();
 
   return (
     <AnimatePresence>
@@ -129,13 +132,19 @@ export function CartDrawer() {
                 <p className="text-sm text-gray-500 mb-6">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <Link
-                  to="/checkout"
-                  onClick={() => setIsOpen(false)}
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    if (!isAuthenticated) {
+                      setAuthModalOpen(true);
+                    } else {
+                      navigate("/checkout");
+                    }
+                  }}
                   className="w-full inline-flex items-center justify-center rounded-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 disabled:pointer-events-none disabled:opacity-50 bg-black text-white hover:bg-gray-900 h-14 px-10 text-base"
                 >
                   Checkout
-                </Link>
+                </button>
               </div>
             )}
           </motion.div>

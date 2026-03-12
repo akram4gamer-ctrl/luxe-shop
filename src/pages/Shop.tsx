@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Container } from "@/components/ui/Container";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -9,17 +10,41 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { motion } from "motion/react";
 
 export function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { products } = useProductStore();
   const { categories } = useCategoryStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("featured");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update local state if URL changes
+  useEffect(() => {
+    const search = searchParams.get("search");
+    if (search !== null) {
+      if (search !== searchQuery) setSearchQuery(search);
+    } else if (searchQuery !== "") {
+      setSearchQuery("");
+    }
+  }, [searchParams]);
 
   // Simulate loading when filters change
   const handleFilterChange = (setter: any, value: any) => {
     setIsLoading(true);
     setter(value);
+    
+    // If updating search query, also update URL
+    if (setter === setSearchQuery) {
+      setSearchParams(prev => {
+        if (value) {
+          prev.set("search", value);
+        } else {
+          prev.delete("search");
+        }
+        return prev;
+      });
+    }
+    
     setTimeout(() => setIsLoading(false), 400);
   };
 

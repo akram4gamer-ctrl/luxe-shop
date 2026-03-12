@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   in_shipping: 'In Shipping',
   arrived_waiting_pickup: 'Arrived / Waiting Pickup',
   completed: 'Completed',
+  cancelled: 'Denied / Cancelled',
 };
 
 const STATUS_FLOW: OrderStatus[] = [
@@ -120,7 +121,7 @@ export function AdminOrderDetail() {
         </Link>
         <div>
           <h2 className="text-2xl font-serif flex items-center gap-3">
-            Order <span className="font-mono text-gold-600">{order.id.split('-')[0].toUpperCase()}</span>
+            Order <span className="font-mono text-gold-600">{String(order.id).split('-')[0].toUpperCase()}</span>
           </h2>
           <p className="text-sm text-gray-500">Placed on {new Date(order.created_at).toLocaleString()}</p>
         </div>
@@ -137,8 +138,8 @@ export function AdminOrderDetail() {
             <div className="flex flex-wrap gap-2 mb-6">
               {STATUS_FLOW.map((status, index) => {
                 const isPast = index < currentStatusIndex;
-                const isCurrent = index === currentStatusIndex;
-                const isNext = index === currentStatusIndex + 1;
+                const isCurrent = index === currentStatusIndex && order.status !== 'cancelled';
+                const isNext = index === currentStatusIndex + 1 && order.status !== 'cancelled';
                 
                 let btnClass = "px-4 py-2 text-sm border rounded-sm transition-colors ";
                 if (isCurrent) btnClass += "bg-black text-white border-black font-medium";
@@ -158,6 +159,24 @@ export function AdminOrderDetail() {
                 );
               })}
             </div>
+
+            {order.status !== 'cancelled' && order.status !== 'completed' && (
+              <div className="mb-6 pt-4 border-t border-gray-100">
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => handleStatusChange('cancelled')}
+                >
+                  Deny / Cancel Order
+                </Button>
+              </div>
+            )}
+            
+            {order.status === 'cancelled' && (
+              <div className="mb-6 p-4 bg-red-50 text-red-800 border border-red-200 rounded-sm">
+                This order has been denied or cancelled.
+              </div>
+            )}
 
             <div className="flex gap-4 items-start">
               <input 

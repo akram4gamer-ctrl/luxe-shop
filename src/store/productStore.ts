@@ -45,7 +45,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
       original_price_cny: productData.originalPriceCNY,
       sale_price_cny: productData.salePriceCNY,
       is_on_sale: productData.isOnSale,
-      category_id: productData.categoryId,
+      category_id: productData.categoryId || null,
       images: productData.images,
       in_stock: productData.inStock,
       featured: productData.featured
@@ -65,7 +65,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
     if (productData.originalPriceCNY !== undefined) dbProduct.original_price_cny = productData.originalPriceCNY;
     if (productData.salePriceCNY !== undefined) dbProduct.sale_price_cny = productData.salePriceCNY;
     if (productData.isOnSale !== undefined) dbProduct.is_on_sale = productData.isOnSale;
-    if (productData.categoryId !== undefined) dbProduct.category_id = productData.categoryId;
+    if (productData.categoryId !== undefined) dbProduct.category_id = productData.categoryId || null;
     if (productData.images !== undefined) dbProduct.images = productData.images;
     if (productData.inStock !== undefined) dbProduct.in_stock = productData.inStock;
     if (productData.featured !== undefined) dbProduct.featured = productData.featured;

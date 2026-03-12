@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ShoppingBag, Menu, X, Search, User } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, User, Package } from "lucide-react";
 import { Container } from "../ui/Container";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useCustomerAuthStore } from "@/store/customerAuthStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useCategoryStore } from "@/store/categoryStore";
+import { SearchModal } from "../search/SearchModal";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -19,6 +20,7 @@ const navLinks = [
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const { getCartCount, setIsOpen } = useCartStore();
   const { isAuthenticated } = useCustomerAuthStore();
@@ -91,12 +93,24 @@ export function Navbar() {
 
           {/* Icons */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-900 hover:text-gold-600 transition-colors hidden sm:block">
+            <button 
+              onClick={() => setSearchOpen(true)}
+              className="p-2 text-gray-900 hover:text-gold-600 transition-colors hidden sm:block"
+              title="Search"
+            >
               <Search className="w-5 h-5" />
             </button>
             <Link 
+              to={isAuthenticated ? "/orders" : "/login"}
+              className="p-2 text-gray-900 hover:text-gold-600 transition-colors hidden sm:block"
+              title="My Orders"
+            >
+              <Package className="w-5 h-5" />
+            </Link>
+            <Link 
               to={isAuthenticated ? "/account" : "/login"}
               className="p-2 text-gray-900 hover:text-gold-600 transition-colors hidden sm:block"
+              title="My Account"
             >
               <User className="w-5 h-5" />
             </Link>
@@ -154,7 +168,14 @@ export function Navbar() {
                     {link.name}
                   </Link>
                 ))}
-                <div className="pt-6 border-t border-gray-100">
+                <div className="pt-6 border-t border-gray-100 space-y-6">
+                  <Link
+                    to={isAuthenticated ? "/orders" : "/login"}
+                    className="flex items-center gap-3 text-lg uppercase tracking-wider text-gray-900"
+                  >
+                    <Package className="w-5 h-5" />
+                    My Orders
+                  </Link>
                   <Link
                     to={isAuthenticated ? "/account" : "/login"}
                     className="flex items-center gap-3 text-lg uppercase tracking-wider text-gray-900"
@@ -168,6 +189,8 @@ export function Navbar() {
           </>
         )}
       </AnimatePresence>
+
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

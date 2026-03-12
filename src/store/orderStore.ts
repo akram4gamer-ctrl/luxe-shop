@@ -7,7 +7,8 @@ export type OrderStatus =
   | 'paid_processing'
   | 'in_shipping'
   | 'arrived_waiting_pickup'
-  | 'completed';
+  | 'completed'
+  | 'cancelled';
 
 export interface StatusHistoryEntry {
   status: OrderStatus;

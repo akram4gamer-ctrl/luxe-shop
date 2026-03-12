@@ -1,0 +1,26 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://ovhulucxlwyobrsiydsr.supabase.co";
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92aHVsdWN4bHd5b2Jyc2l5ZHNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxNjE4OTQsImV4cCI6MjA4ODczNzg5NH0.jZx2z1lZ8vXz1ujy1cFkwPApmYP58JGVxiqlvZGrZCw";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+async function test() {
+  const { data, error } = await supabase.from('orders').insert({
+    customer_name: 'Test',
+    phone: '123',
+    email: 'test@test.com',
+    city: 'Test',
+    address: 'Test',
+    country: 'Test',
+    product_name: 'Test',
+    product_variant: 'Test',
+    quantity: 1,
+    notes: 'Test',
+    status: 'pending_payment'
+  }).select();
+  console.log('Insert Data:', data);
+  console.log('Insert Error:', error);
+}
+
+test();

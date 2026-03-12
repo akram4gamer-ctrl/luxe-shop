@@ -12,6 +12,7 @@ import { CheckoutSuccess } from "@/pages/CheckoutSuccess";
 import { Login } from "@/pages/auth/Login";
 import { Signup } from "@/pages/auth/Signup";
 import { AccountDashboard } from "@/pages/account/AccountDashboard";
+import { Orders } from "@/pages/Orders";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
 import { AdminProductForm } from "@/pages/admin/AdminProductForm";
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/account" element={<AccountDashboard />} />
+        <Route path="/orders" element={<Orders />} />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>

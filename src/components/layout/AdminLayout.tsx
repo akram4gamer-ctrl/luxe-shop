@@ -23,6 +23,14 @@ export function AdminLayout() {
     setIsLoggingIn(true);
     setError('');
     
+    // Hardcoded admin bypass
+    if (email === 'admin' && password === 'admin') {
+      localStorage.setItem('admin_bypass', 'true');
+      useAuthStore.setState({ isAuthenticated: true, isLoading: false });
+      setIsLoggingIn(false);
+      return;
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -49,13 +57,13 @@ export function AdminLayout() {
           <h1 className="text-2xl font-serif text-center mb-6">Admin Login</h1>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email or Username</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-200 px-4 py-2 outline-none focus:border-gold-500 transition-colors"
-                placeholder="admin@example.com"
+                placeholder="admin"
                 required
               />
             </div>
