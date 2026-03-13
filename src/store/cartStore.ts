@@ -1,20 +1,22 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Product } from "@/types";
+import { Product, ProductVariant } from "@/types";
 import { getEffectivePrice } from "@/lib/utils";
 import { idbStorage } from "./storage";
 
 export interface CartItem {
+  id: string; // Unique ID for the cart item (productId + variantId)
   product: Product;
   quantity: number;
+  variant?: ProductVariant;
 }
 
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, variant?: ProductVariant) => void;
+  removeItem: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   setIsOpen: (isOpen: boolean) => void;
   getCartTotal: () => number;
@@ -26,40 +28,38 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       isOpen: false,
-      addItem: (product, quantity = 1) => {
+      addItem: (product, quantity = 1, variant) => {
         set((state) => {
-          const existingItem = state.items.find(
-            (item) => item.product.id === product.id,
-          );
+          const itemId = variant ? `${product.id}-${variant.id}` : product.id;
+          const existingItem = state.items.find((item) => item.id === itemId);
+          
           if (existingItem) {
             return {
               items: state.items.map((item) =>
-                item.product.id === product.id
+                item.id === itemId
                   ? { ...item, quantity: item.quantity + quantity }
                   : item,
               ),
             };
           }
-          return { items: [...state.items, { product, quantity }] };
+          return { items: [...state.items, { id: itemId, product, quantity, variant }] };
         });
       },
-      removeItem: (productId) => {
+      removeItem: (itemId) => {
         set((state) => ({
-          items: state.items.filter((item) => item.product.id !== productId),
+          items: state.items.filter((item) => item.id !== itemId),
         }));
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (itemId, quantity) => {
         set((state) => {
           if (quantity <= 0) {
             return {
-              items: state.items.filter(
-                (item) => item.product.id !== productId,
-              ),
+              items: state.items.filter((item) => item.id !== itemId),
             };
           }
           return {
             items: state.items.map((item) =>
-              item.product.id === productId ? { ...item, quantity } : item,
+              item.id === itemId ? { ...item, quantity } : item,
             ),
           };
         });
@@ -67,10 +67,10 @@ export const useCartStore = create<CartState>()(
       clearCart: () => set({ items: [] }),
       setIsOpen: (isOpen) => set({ isOpen }),
       getCartTotal: () => {
-        return get().items.reduce(
-          (total, item) => total + getEffectivePrice(item.product) * item.quantity,
-          0,
-        );
+        return get().items.reduce((total, item) => {
+          const price = item.variant?.priceCNY ?? getEffectivePrice(item.product);
+          return total + price * item.quantity;
+        }, 0);
       },
       getCartCount: () => {
         return get().items.reduce((count, item) => count + item.quantity, 0);

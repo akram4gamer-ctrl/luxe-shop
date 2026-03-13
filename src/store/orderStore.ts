@@ -19,6 +19,7 @@ export interface StatusHistoryEntry {
 export interface OrderItem {
   productId: string;
   productName: string;
+  variantName?: string;
   priceAtPurchase: number;
   quantity: number;
   image?: string;

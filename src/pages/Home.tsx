@@ -106,9 +106,9 @@ export function Home() {
               >
                 <img
                   src={
-                    category.slug === 'perfumes' ? 'https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&q=80&w=800' :
-                    category.slug === 'watches' ? 'https://images.unsplash.com/photo-1587836374828-cb4387df3eb7?auto=format&fit=crop&q=80&w=800' :
-                    `https://picsum.photos/seed/${category.slug}/800/600`
+                    category.slug === 'perfumes' ? 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&q=80&w=800' :
+                    category.slug === 'watches' ? 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&q=80&w=800' :
+                    'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
                   }
                   alt={category.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80"

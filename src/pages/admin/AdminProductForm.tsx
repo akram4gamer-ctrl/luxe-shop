@@ -3,8 +3,9 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useProductStore } from '@/store/productStore';
 import { useCategoryStore } from '@/store/categoryStore';
 import { Button, buttonVariants } from '@/components/ui/Button';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ProductVariant } from '@/types';
 
 export function AdminProductForm() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ export function AdminProductForm() {
     featured: false,
   });
 
+  const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export function AdminProductForm() {
           inStock: product.inStock,
           featured: product.featured || false,
         });
+        setVariants(product.variants || []);
       } else {
         toast.error('Product not found');
         navigate('/admin');
@@ -68,6 +71,18 @@ export function AdminProductForm() {
         }));
       }
     }
+  };
+
+  const handleAddVariant = () => {
+    setVariants([...variants, { id: Date.now().toString(), name: '', priceCNY: null, inStock: true }]);
+  };
+
+  const handleRemoveVariant = (id: string) => {
+    setVariants(variants.filter(v => v.id !== id));
+  };
+
+  const handleVariantChange = (id: string, field: keyof ProductVariant, value: any) => {
+    setVariants(variants.map(v => v.id === id ? { ...v, [field]: value } : v));
   };
 
   const handleAddImage = () => {
@@ -135,6 +150,12 @@ export function AdminProductForm() {
       }
     }
 
+    // Clean variants
+    const cleanedVariants = variants.filter(v => v.name.trim() !== '').map(v => ({
+      ...v,
+      priceCNY: v.priceCNY ? Number(v.priceCNY) : null
+    }));
+
     const productData = {
       name: formData.name,
       slug: formData.slug,
@@ -146,6 +167,7 @@ export function AdminProductForm() {
       images: formData.images,
       inStock: formData.inStock,
       featured: formData.featured,
+      variants: cleanedVariants,
     };
 
     try {
@@ -262,6 +284,119 @@ export function AdminProductForm() {
                   </span>
                 ) : null}
               </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700">Product Variants</label>
+            <Button type="button" variant="outline" size="sm" onClick={handleAddVariant} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" /> Add Variant
+            </Button>
+          </div>
+          
+          {variants.length > 0 && (
+            <div className="space-y-3">
+              {variants.map((variant, index) => (
+                <div key={variant.id} className="flex flex-col gap-4 p-4 border border-gray-200 bg-gray-50 rounded-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 space-y-2">
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Name</label>
+                      <input
+                        type="text"
+                        value={variant.name}
+                        onChange={(e) => handleVariantChange(variant.id, 'name', e.target.value)}
+                        placeholder="e.g. Small, Red, 128GB"
+                        className="w-full border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-gold-500 bg-white"
+                        required
+                      />
+                    </div>
+                    <div className="w-32 space-y-2">
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Price (¥)</label>
+                      <input
+                        type="number"
+                        value={variant.priceCNY || ''}
+                        onChange={(e) => handleVariantChange(variant.id, 'priceCNY', e.target.value ? Number(e.target.value) : null)}
+                        placeholder="Optional"
+                        min="0"
+                        step="0.01"
+                        className="w-full border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-gold-500 bg-white"
+                      />
+                    </div>
+                    <div className="w-24 space-y-2">
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">In Stock</label>
+                      <div className="flex items-center h-9">
+                        <input
+                          type="checkbox"
+                          checked={variant.inStock}
+                          onChange={(e) => handleVariantChange(variant.id, 'inStock', e.target.checked)}
+                          className="w-4 h-4 accent-gold-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="pt-6">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVariant(variant.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Remove variant"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider">Variant Image (Optional)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={variant.image || ''}
+                        onChange={(e) => handleVariantChange(variant.id, 'image', e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className="flex-1 border border-gray-200 px-3 py-1.5 text-sm outline-none focus:border-gold-500 bg-white"
+                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            if (file.size > 10 * 1024 * 1024) {
+                              toast.error('File size must be less than 10MB.');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleVariantChange(variant.id, 'image', reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                            e.target.value = '';
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          title="Upload image"
+                        />
+                        <Button type="button" variant="secondary" size="sm" className="h-full px-3">
+                          Upload
+                        </Button>
+                      </div>
+                      {variant.image && (
+                        <div className="w-9 h-9 border border-gray-200 rounded-sm overflow-hidden flex-shrink-0 relative group">
+                          <img src={variant.image} alt="Variant" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          <button
+                            type="button"
+                            onClick={() => handleVariantChange(variant.id, 'image', null)}
+                            className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

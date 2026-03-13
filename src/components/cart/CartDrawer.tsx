@@ -60,11 +60,13 @@ export function CartDrawer() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {items.map((item) => (
-                    <div key={item.product.id} className="flex gap-4">
+                  {items.map((item) => {
+                    const price = item.variant?.priceCNY ?? getEffectivePrice(item.product);
+                    return (
+                    <div key={item.id} className="flex gap-4">
                       <div className="w-24 h-30 bg-gray-100 flex-shrink-0">
                         <img
-                          src={item.product.images[0]}
+                          src={item.variant?.image || item.product.images[0]}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
@@ -76,12 +78,17 @@ export function CartDrawer() {
                             <h3 className="text-sm font-medium text-gray-900">
                               {item.product.name}
                             </h3>
+                            {item.variant && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Variant: {item.variant.name}
+                              </p>
+                            )}
                             <p className="text-sm text-gray-500 mt-1">
-                              {formatCurrency(getEffectivePrice(item.product))}
+                              {formatCurrency(price)}
                             </p>
                           </div>
                           <button
-                            onClick={() => removeItem(item.product.id)}
+                            onClick={() => removeItem(item.id)}
                             className="text-gray-400 hover:text-red-500 transition-colors"
                           >
                             <X className="w-4 h-4" />
@@ -92,7 +99,7 @@ export function CartDrawer() {
                             <button
                               onClick={() =>
                                 updateQuantity(
-                                  item.product.id,
+                                  item.id,
                                   item.quantity - 1,
                                 )
                               }
@@ -106,7 +113,7 @@ export function CartDrawer() {
                             <button
                               onClick={() =>
                                 updateQuantity(
-                                  item.product.id,
+                                  item.id,
                                   item.quantity + 1,
                                 )
                               }
@@ -118,7 +125,7 @@ export function CartDrawer() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
             </div>

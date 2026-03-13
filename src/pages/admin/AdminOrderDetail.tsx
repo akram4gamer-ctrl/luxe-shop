@@ -76,13 +76,18 @@ export function AdminOrderDetail() {
 
   const handleStatusChange = async (newStatus: OrderStatus) => {
     if (window.confirm(`Are you sure you want to change status to ${STATUS_LABELS[newStatus]}?`)) {
+      const timestamp = new Date().toLocaleString();
+      const historyEntry = `[${timestamp}] Status changed to: ${STATUS_LABELS[newStatus]}${statusNote ? ` - Note: ${statusNote}` : ''}`;
+      const updatedNotes = adminNotes ? `${adminNotes}\n${historyEntry}` : historyEntry;
+
       const { error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update({ status: newStatus, admin_notes: updatedNotes })
         .eq('id', order.id);
         
       if (!error) {
-        setOrder({ ...order, status: newStatus });
+        setOrder({ ...order, status: newStatus, admin_notes: updatedNotes });
+        setAdminNotes(updatedNotes);
         setStatusNote('');
         toast.success('Order status updated');
       } else {
@@ -200,6 +205,22 @@ export function AdminOrderDetail() {
                     <span className="font-medium text-gray-900">Order Created</span>
                   </div>
                 </div>
+                {adminNotes.split('\n').filter(line => line.startsWith('[') && line.includes('] Status changed to:')).map((line, idx) => {
+                  const match = line.match(/^\[(.*?)\] Status changed to: (.*?)(?: - Note: (.*))?$/);
+                  if (!match) return null;
+                  const [_, timestamp, status, note] = match;
+                  return (
+                    <div key={idx} className="flex gap-4 text-sm">
+                      <div className="w-32 text-gray-500 flex-shrink-0">
+                        {timestamp}
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">{status}</span>
+                        {note && <p className="text-gray-500 mt-0.5">{note}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -216,7 +237,9 @@ export function AdminOrderDetail() {
                   <p className="font-medium">
                     {order.product_name}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">Variant: {order.product_variant}</p>
+                  {order.product_variant && order.product_variant !== 'Default' && (
+                    <p className="text-sm text-gray-500 mt-1">Variant: {order.product_variant}</p>
+                  )}
                   <p className="text-sm text-gray-500 mt-1">Qty: {order.quantity}</p>
                 </div>
               </div>

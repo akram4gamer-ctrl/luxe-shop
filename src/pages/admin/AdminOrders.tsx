@@ -124,6 +124,11 @@ export function AdminOrders() {
                   </td>
                   <td className="px-6 py-4 font-medium">
                     {order.quantity}x {order.product_name}
+                    {order.product_variant && order.product_variant !== 'Default' && (
+                      <span className="block text-xs text-gray-500 font-normal mt-0.5">
+                        Variant: {order.product_variant}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status as OrderStatus] || 'bg-gray-100 text-gray-800'}`}>

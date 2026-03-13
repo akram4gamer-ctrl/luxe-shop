@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Product } from '@/types';
+import { Product, ProductVariant } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 interface ProductState {
@@ -11,6 +11,32 @@ interface ProductState {
   deleteProduct: (id: string) => Promise<void>;
 }
 
+const parseDescription = (desc: string) => {
+  try {
+    if (desc && desc.startsWith('{"_isComplex":true')) {
+      const parsed = JSON.parse(desc);
+      return {
+        description: parsed.text || '',
+        variants: parsed.variants || []
+      };
+    }
+  } catch (e) {
+    // ignore
+  }
+  return { description: desc || '', variants: [] };
+};
+
+const stringifyDescription = (description: string, variants?: ProductVariant[]) => {
+  if (variants && variants.length > 0) {
+    return JSON.stringify({
+      _isComplex: true,
+      text: description,
+      variants: variants
+    });
+  }
+  return description;
+};
+
 export const useProductStore = create<ProductState>((set, get) => ({
   products: [],
   isLoading: true,
@@ -18,19 +44,23 @@ export const useProductStore = create<ProductState>((set, get) => ({
     set({ isLoading: true });
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (data) {
-      const mapped = data.map(p => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        description: p.description,
-        originalPriceCNY: p.original_price_cny,
-        salePriceCNY: p.sale_price_cny,
-        isOnSale: p.is_on_sale,
-        categoryId: p.category_id,
-        images: p.images || [],
-        inStock: p.in_stock,
-        featured: p.featured
-      }));
+      const mapped = data.map(p => {
+        const { description, variants } = parseDescription(p.description);
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          description: description,
+          originalPriceCNY: p.original_price_cny,
+          salePriceCNY: p.sale_price_cny,
+          isOnSale: p.is_on_sale,
+          categoryId: p.category_id,
+          images: p.images || [],
+          inStock: p.in_stock,
+          featured: p.featured,
+          variants: variants
+        };
+      });
       set({ products: mapped, isLoading: false });
     } else {
       set({ isLoading: false });
@@ -41,7 +71,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
     const dbProduct = {
       name: productData.name,
       slug: productData.slug,
-      description: productData.description,
+      description: stringifyDescription(productData.description, productData.variants),
       original_price_cny: productData.originalPriceCNY,
       sale_price_cny: productData.salePriceCNY,
       is_on_sale: productData.isOnSale,
@@ -61,7 +91,15 @@ export const useProductStore = create<ProductState>((set, get) => ({
     const dbProduct: any = {};
     if (productData.name !== undefined) dbProduct.name = productData.name;
     if (productData.slug !== undefined) dbProduct.slug = productData.slug;
-    if (productData.description !== undefined) dbProduct.description = productData.description;
+    
+    // If we are updating description or variants, we need to get the current ones to merge them properly
+    if (productData.description !== undefined || productData.variants !== undefined) {
+      const currentProduct = get().products.find(p => p.id === id);
+      const newDesc = productData.description !== undefined ? productData.description : (currentProduct?.description || '');
+      const newVars = productData.variants !== undefined ? productData.variants : (currentProduct?.variants || []);
+      dbProduct.description = stringifyDescription(newDesc, newVars);
+    }
+
     if (productData.originalPriceCNY !== undefined) dbProduct.original_price_cny = productData.originalPriceCNY;
     if (productData.salePriceCNY !== undefined) dbProduct.sale_price_cny = productData.salePriceCNY;
     if (productData.isOnSale !== undefined) dbProduct.is_on_sale = productData.isOnSale;

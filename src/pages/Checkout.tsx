@@ -60,7 +60,7 @@ export function Checkout() {
         address: formData.address,
         country: formData.country,
         product_name: item.product.name,
-        product_variant: 'Default',
+        product_variant: item.variant?.name || 'Default',
         quantity: item.quantity,
         notes: formData.notes,
         status: 'pending_payment'
@@ -78,9 +78,10 @@ export function Checkout() {
         items: items.map(item => ({
           productId: item.product.id,
           productName: item.product.name,
-          priceAtPurchase: getEffectivePrice(item.product),
+          variantName: item.variant?.name,
+          priceAtPurchase: item.variant?.priceCNY ?? getEffectivePrice(item.product),
           quantity: item.quantity,
-          image: item.product.images[0]
+          image: item.variant?.image || item.product.images[0]
         })),
         totalPriceCNY: getCartTotal(),
         customerName: formData.fullName,
@@ -262,10 +263,10 @@ export function Checkout() {
               
               <div className="space-y-4 mb-6 pb-6 border-b border-gray-200 max-h-64 overflow-y-auto pr-2">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-4">
+                  <div key={item.id} className="flex gap-4">
                     <div className="w-16 h-20 bg-gray-100 flex-shrink-0">
                       <img 
-                        src={item.product.images[0]} 
+                        src={item.variant?.image || item.product.images[0]} 
                         alt={item.product.name} 
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
@@ -273,8 +274,11 @@ export function Checkout() {
                     </div>
                     <div className="flex-1 flex flex-col justify-center">
                       <h3 className="text-sm font-medium text-gray-900 line-clamp-1">{item.product.name}</h3>
+                      {item.variant && (
+                        <p className="text-xs text-gray-500 mt-1">Variant: {item.variant.name}</p>
+                      )}
                       <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
-                      <p className="text-sm font-medium mt-1">{formatCurrency(getEffectivePrice(item.product) * item.quantity)}</p>
+                      <p className="text-sm font-medium mt-1">{formatCurrency((item.variant?.priceCNY ?? getEffectivePrice(item.product)) * item.quantity)}</p>
                     </div>
                   </div>
                 ))}

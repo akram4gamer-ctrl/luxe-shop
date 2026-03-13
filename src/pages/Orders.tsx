@@ -59,6 +59,7 @@ export function Orders() {
             created_at: order.createdAt,
             customer_name: order.customerName,
             product_name: item.productName,
+            product_variant: item.variantName || 'Default',
             quantity: item.quantity,
             status: order.status,
             tracking_number: order.trackingNumber,
@@ -140,6 +141,9 @@ export function Orders() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium text-lg mb-1">{order.product_name}</h3>
+                      {order.product_variant && order.product_variant !== 'Default' && (
+                        <p className="text-gray-500 text-sm mb-1">Variant: {order.product_variant}</p>
+                      )}
                       <p className="text-gray-500 text-sm mb-2">Qty: {order.quantity}</p>
                       
                       {order.tracking_number && (

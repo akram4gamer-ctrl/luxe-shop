@@ -5,6 +5,14 @@ export type Category = {
   description?: string;
 };
 
+export type ProductVariant = {
+  id: string;
+  name: string;
+  priceCNY?: number | null;
+  inStock: boolean;
+  image?: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -17,4 +25,5 @@ export type Product = {
   images: string[];
   inStock: boolean;
   featured?: boolean;
+  variants?: ProductVariant[];
 };

@@ -49,13 +49,15 @@ export function Cart() {
               </div>
 
               <div className="divide-y divide-gray-100">
-                {items.map((item) => (
+                {items.map((item) => {
+                  const price = item.variant?.priceCNY ?? getEffectivePrice(item.product);
+                  return (
                   <motion.div
                     layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    key={item.product.id}
+                    key={item.id}
                     className="py-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center"
                   >
                     <div className="col-span-1 md:col-span-6 flex gap-6">
@@ -64,7 +66,7 @@ export function Cart() {
                         className="w-24 h-32 bg-gray-100 flex-shrink-0"
                       >
                         <img
-                          src={item.product.images[0]}
+                          src={item.variant?.image || item.product.images[0]}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                           referrerPolicy="no-referrer"
@@ -77,8 +79,13 @@ export function Cart() {
                         >
                           {item.product.name}
                         </Link>
+                        {item.variant && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            Variant: {item.variant.name}
+                          </p>
+                        )}
                         <p className="text-gray-500 mt-1">
-                          {formatCurrency(getEffectivePrice(item.product))}
+                          {formatCurrency(price)}
                         </p>
                       </div>
                     </div>
@@ -87,7 +94,7 @@ export function Cart() {
                       <div className="flex items-center border border-gray-200 rounded-sm">
                         <button
                           onClick={() =>
-                            updateQuantity(item.product.id, item.quantity - 1)
+                            updateQuantity(item.id, item.quantity - 1)
                           }
                           className="p-2 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors"
                         >
@@ -98,7 +105,7 @@ export function Cart() {
                         </span>
                         <button
                           onClick={() =>
-                            updateQuantity(item.product.id, item.quantity + 1)
+                            updateQuantity(item.id, item.quantity + 1)
                           }
                           className="p-2 text-gray-500 hover:text-black hover:bg-gray-50 transition-colors"
                         >
@@ -110,13 +117,13 @@ export function Cart() {
                     <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
                       <span className="md:hidden text-gray-500">Total:</span>
                       <span className="font-medium text-lg">
-                        {formatCurrency(getEffectivePrice(item.product) * item.quantity)}
+                        {formatCurrency(price * item.quantity)}
                       </span>
                     </div>
 
                     <div className="col-span-1 flex justify-end">
                       <button
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => removeItem(item.id)}
                         className="text-gray-400 hover:text-red-500 transition-colors p-2"
                         aria-label="Remove item"
                       >
@@ -124,7 +131,7 @@ export function Cart() {
                       </button>
                     </div>
                   </motion.div>
-                ))}
+                )})}
               </div>
             </div>
 
