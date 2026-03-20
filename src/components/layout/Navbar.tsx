@@ -10,13 +10,6 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { useCategoryStore } from "@/store/categoryStore";
 import { SearchModal } from "../search/SearchModal";
 
-const navLinks = [
-  { name: "Home", href: "/" },
-  { name: "Shop", href: "/shop" },
-  { name: "Perfumes", href: "/category/perfumes" },
-  { name: "Watches", href: "/category/watches" },
-];
-
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,7 +23,9 @@ export function Navbar() {
   const dynamicNavLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
-    ...categories.slice(0, 3).map(c => ({ name: c.name, href: `/category/${c.slug}` }))
+    { name: "Men", href: "/shop?gender=male" },
+    { name: "Women", href: "/shop?gender=female" },
+    ...categories.slice(0, 5).map(c => ({ name: c.name, href: `/category/${c.slug}` }))
   ];
 
   useEffect(() => {

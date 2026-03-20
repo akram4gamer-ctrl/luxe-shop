@@ -108,6 +108,8 @@ export function Home() {
                   src={
                     category.slug === 'perfumes' ? 'https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&q=80&w=800' :
                     category.slug === 'watches' ? 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&q=80&w=800' :
+                    category.slug === 'bags' ? 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80&w=800' :
+                    category.slug === 'glasses' ? 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=800' :
                     'https://images.unsplash.com/photo-1600607686527-6fb886090705?auto=format&fit=crop&q=80&w=800'
                   }
                   alt={category.name}
@@ -127,6 +129,68 @@ export function Home() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Shop by Department */}
+      <section className="py-24 bg-[#0a0a0a] text-white border-b border-white/5">
+        <Container>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-serif tracking-tight mb-4 font-light">
+              Shop by Department
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Discover our curated collections tailored for him and her.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative h-[500px] overflow-hidden group"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&q=80&w=800"
+                alt="Men's Collection"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity group-hover:bg-black/40" />
+              <div className="absolute inset-0 flex flex-col items-center justify-end text-white p-12 text-center">
+                <h2 className="text-4xl font-serif mb-4 font-light">For Him</h2>
+                <Link
+                  to="/shop?gender=male"
+                  className="inline-flex items-center gap-2 text-sm uppercase tracking-widest border-b border-white/50 pb-1 hover:text-gold-300 hover:border-gold-300 transition-colors"
+                >
+                  Shop Men's <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative h-[500px] overflow-hidden group"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1584273143981-41c073dfe8f8?auto=format&fit=crop&q=80&w=800"
+                alt="Women's Collection"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity group-hover:bg-black/40" />
+              <div className="absolute inset-0 flex flex-col items-center justify-end text-white p-12 text-center">
+                <h2 className="text-4xl font-serif mb-4 font-light">For Her</h2>
+                <Link
+                  to="/shop?gender=female"
+                  className="inline-flex items-center gap-2 text-sm uppercase tracking-widest border-b border-white/50 pb-1 hover:text-gold-300 hover:border-gold-300 transition-colors"
+                >
+                  Shop Women's <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </motion.div>
           </div>
         </Container>
       </section>

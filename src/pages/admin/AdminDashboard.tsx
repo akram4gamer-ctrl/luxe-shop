@@ -34,6 +34,7 @@ export function AdminDashboard() {
               <tr>
                 <th className="px-6 py-4 font-medium">Product</th>
                 <th className="px-6 py-4 font-medium">Category</th>
+                <th className="px-6 py-4 font-medium">Gender</th>
                 <th className="px-6 py-4 font-medium">Original Price</th>
                 <th className="px-6 py-4 font-medium">Sale Price</th>
                 <th className="px-6 py-4 font-medium">Discount</th>
@@ -62,6 +63,9 @@ export function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4 text-gray-500">
                     {categories.find(c => c.id === product.categoryId)?.name || 'Unknown'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 capitalize">
+                    {product.gender || 'Unisex'}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-500">
                     {formatCurrency(product.originalPriceCNY ?? (product as any).price ?? 0)}
@@ -106,7 +110,7 @@ export function AdminDashboard() {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     No products found. Add one to get started.
                   </td>
                 </tr>

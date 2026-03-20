@@ -43,6 +43,37 @@ export function AdminCategories() {
     }
   };
 
+  const handleSeedCategories = async () => {
+    try {
+      const bagsExists = categories.some(c => c.slug === 'bags');
+      const glassesExists = categories.some(c => c.slug === 'glasses');
+
+      if (!bagsExists) {
+        await addCategory({
+          name: 'Bags',
+          slug: 'bags',
+          description: 'Luxury bags and accessories'
+        });
+      }
+      
+      if (!glassesExists) {
+        await addCategory({
+          name: 'Glasses',
+          slug: 'glasses',
+          description: 'Designer sunglasses and eyewear'
+        });
+      }
+
+      if (bagsExists && glassesExists) {
+        toast.info('Bags and Glasses categories already exist');
+      } else {
+        toast.success('Successfully added Bags and Glasses categories');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to seed categories');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -50,11 +81,18 @@ export function AdminCategories() {
           <h1 className="text-2xl font-serif mb-2">Categories</h1>
           <p className="text-gray-500">Manage your product categories.</p>
         </div>
-        {!isEditing && (
-          <Button onClick={() => setIsEditing('new')} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add Category
-          </Button>
-        )}
+        <div className="flex gap-4">
+          {!isEditing && (
+            <>
+              <Button variant="outline" onClick={handleSeedCategories} className="flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Add Bags & Glasses
+              </Button>
+              <Button onClick={() => setIsEditing('new')} className="flex items-center gap-2">
+                <Plus className="w-4 h-4" /> Add Category
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {isEditing && (

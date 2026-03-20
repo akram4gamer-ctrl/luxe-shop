@@ -15,6 +15,7 @@ export function Shop() {
   const { categories } = useCategoryStore();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedGender, setSelectedGender] = useState<string>(searchParams.get("gender") || "all");
   const [sortBy, setSortBy] = useState<string>("featured");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,6 +27,13 @@ export function Shop() {
     } else if (searchQuery !== "") {
       setSearchQuery("");
     }
+
+    const gender = searchParams.get("gender");
+    if (gender !== null) {
+      if (gender !== selectedGender) setSelectedGender(gender);
+    } else if (selectedGender !== "all") {
+      setSelectedGender("all");
+    }
   }, [searchParams]);
 
   // Simulate loading when filters change
@@ -33,13 +41,16 @@ export function Shop() {
     setIsLoading(true);
     setter(value);
     
-    // If updating search query, also update URL
-    if (setter === setSearchQuery) {
+    // If updating search query or gender, also update URL
+    if (setter === setSearchQuery || setter === setSelectedGender) {
       setSearchParams(prev => {
-        if (value) {
-          prev.set("search", value);
-        } else {
-          prev.delete("search");
+        if (setter === setSearchQuery) {
+          if (value) prev.set("search", value);
+          else prev.delete("search");
+        }
+        if (setter === setSelectedGender) {
+          if (value && value !== "all") prev.set("gender", value);
+          else prev.delete("gender");
         }
         return prev;
       });
@@ -61,6 +72,10 @@ export function Shop() {
 
     if (selectedCategory !== "all") {
       result = result.filter((p) => p.categoryId === selectedCategory);
+    }
+
+    if (selectedGender !== "all") {
+      result = result.filter((p) => p.gender === selectedGender || p.gender === 'unisex');
     }
 
     switch (sortBy) {
@@ -118,6 +133,48 @@ export function Shop() {
             </div>
 
             <div>
+              <h3 className="text-sm font-medium uppercase tracking-widest mb-4 flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4" /> Department
+              </h3>
+              <div className="space-y-3 mb-8">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={selectedGender === "all"}
+                    onChange={() => handleFilterChange(setSelectedGender, "all")}
+                    className="accent-gold-500"
+                  />
+                  <span className={selectedGender === "all" ? "text-black font-medium" : "text-gray-500"}>
+                    All Departments
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={selectedGender === "male"}
+                    onChange={() => handleFilterChange(setSelectedGender, "male")}
+                    className="accent-gold-500"
+                  />
+                  <span className={selectedGender === "male" ? "text-black font-medium" : "text-gray-500"}>
+                    Men's
+                  </span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={selectedGender === "female"}
+                    onChange={() => handleFilterChange(setSelectedGender, "female")}
+                    className="accent-gold-500"
+                  />
+                  <span className={selectedGender === "female" ? "text-black font-medium" : "text-gray-500"}>
+                    Women's
+                  </span>
+                </label>
+              </div>
+
               <h3 className="text-sm font-medium uppercase tracking-widest mb-4 flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4" /> Categories
               </h3>

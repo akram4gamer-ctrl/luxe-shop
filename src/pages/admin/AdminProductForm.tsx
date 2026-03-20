@@ -25,6 +25,7 @@ export function AdminProductForm() {
     images: [] as string[],
     inStock: true,
     featured: false,
+    gender: 'unisex' as 'male' | 'female' | 'unisex',
   });
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
@@ -45,6 +46,7 @@ export function AdminProductForm() {
           images: [...product.images],
           inStock: product.inStock,
           featured: product.featured || false,
+          gender: product.gender || 'unisex',
         });
         setVariants(product.variants || []);
       } else {
@@ -168,6 +170,7 @@ export function AdminProductForm() {
       inStock: formData.inStock,
       featured: formData.featured,
       variants: cleanedVariants,
+      gender: formData.gender,
     };
 
     try {
@@ -220,7 +223,7 @@ export function AdminProductForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Original Price (¥ CNY)</label>
             <input
@@ -246,6 +249,20 @@ export function AdminProductForm() {
               {categories.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Gender / Department</label>
+            <select
+              name="gender"
+              required
+              value={formData.gender}
+              onChange={handleChange}
+              className="w-full border border-gray-200 px-4 py-2 outline-none focus:border-gold-500 transition-colors bg-white"
+            >
+              <option value="unisex">Unisex</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </select>
           </div>
         </div>

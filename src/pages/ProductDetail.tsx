@@ -165,6 +165,13 @@ export function ProductDetail() {
               <h1 className="text-4xl font-serif tracking-tight mb-4">
                 {product.name}
               </h1>
+              {product.gender && product.gender !== 'unisex' && (
+                <div className="mb-4">
+                  <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 uppercase tracking-widest font-medium rounded-sm">
+                    {product.gender === 'male' ? "Men's" : "Women's"}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center gap-4 mb-6">
                 <p className={`text-2xl ${isSale && !(selectedVariants.length > 0 && selectedVariants[selectedVariants.length - 1].priceCNY) ? 'text-gold-600 font-semibold' : 'text-gray-900'}`}>
                   {formatCurrency(effectivePrice)}

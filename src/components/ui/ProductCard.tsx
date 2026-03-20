@@ -45,6 +45,11 @@ export function ProductCard({ product, theme = 'light' }: ProductCardProps) {
         </div>
       </Link>
       <div className="flex flex-col space-y-1">
+        {product.gender && product.gender !== 'unisex' && (
+          <span className={`text-[10px] uppercase tracking-widest font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            {product.gender === 'male' ? "Men's" : "Women's"}
+          </span>
+        )}
         <h3 className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
           <Link to={`/product/${product.slug}`}>
             <span aria-hidden="true" className="absolute inset-0" />

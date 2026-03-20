@@ -26,4 +26,5 @@ export type Product = {
   inStock: boolean;
   featured?: boolean;
   variants?: ProductVariant[];
+  gender?: 'male' | 'female' | 'unisex';
 };
