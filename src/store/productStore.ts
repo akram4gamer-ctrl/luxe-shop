@@ -46,97 +46,30 @@ export const useProductStore = create<ProductState>((set, get) => ({
     set({ isLoading: true });
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     
-    let mapped = (data || []).map(p => {
-      const { description, variants, gender } = parseDescription(p.description);
-      return {
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        description: description,
-        originalPriceCNY: p.original_price_cny,
-        salePriceCNY: p.sale_price_cny,
-        isOnSale: p.is_on_sale,
-        categoryId: p.category_id,
-        images: p.images || [],
-        inStock: p.in_stock,
-        featured: p.featured,
-        variants: variants,
-        gender: gender as 'male' | 'female' | 'unisex'
-      };
-    });
-
-    // Add mock products for Bags and Glasses if they don't exist
-    const hasBags = mapped.some(p => p.categoryId === '33333333-3333-3333-3333-333333333333');
-    const hasGlasses = mapped.some(p => p.categoryId === '44444444-4444-4444-4444-444444444444');
-
-    if (!hasBags) {
-      mapped.push({
-        id: 'mock-bag-1',
-        name: 'Classic Leather Tote',
-        slug: 'classic-leather-tote',
-        description: 'A timeless leather tote bag perfect for everyday use.',
-        originalPriceCNY: 3500,
-        salePriceCNY: null,
-        isOnSale: false,
-        categoryId: '33333333-3333-3333-3333-333333333333',
-        images: ['https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80&w=800'],
-        inStock: true,
-        featured: true,
-        variants: [],
-        gender: 'female'
+    if (data) {
+      const mapped = data.map(p => {
+        const { description, variants, gender } = parseDescription(p.description);
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          description: description,
+          originalPriceCNY: p.original_price_cny,
+          salePriceCNY: p.sale_price_cny,
+          isOnSale: p.is_on_sale,
+          categoryId: p.category_id,
+          images: p.images || [],
+          inStock: p.in_stock,
+          featured: p.featured,
+          variants: variants,
+          gender: gender as 'male' | 'female' | 'unisex'
+        };
       });
-      mapped.push({
-        id: 'mock-bag-2',
-        name: 'Urban Backpack',
-        slug: 'urban-backpack',
-        description: 'A sleek, modern backpack for the urban commuter.',
-        originalPriceCNY: 2800,
-        salePriceCNY: null,
-        isOnSale: false,
-        categoryId: '33333333-3333-3333-3333-333333333333',
-        images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800'],
-        inStock: true,
-        featured: false,
-        variants: [],
-        gender: 'unisex'
-      });
+      set({ products: mapped, isLoading: false });
+    } else {
+      set({ isLoading: false });
+      console.error('Error fetching products:', error);
     }
-
-    if (!hasGlasses) {
-      mapped.push({
-        id: 'mock-glasses-1',
-        name: 'Aviator Classic',
-        slug: 'aviator-classic',
-        description: 'Iconic aviator sunglasses with polarized lenses.',
-        originalPriceCNY: 1200,
-        salePriceCNY: null,
-        isOnSale: false,
-        categoryId: '44444444-4444-4444-4444-444444444444',
-        images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=800'],
-        inStock: true,
-        featured: true,
-        variants: [],
-        gender: 'unisex'
-      });
-      mapped.push({
-        id: 'mock-glasses-2',
-        name: 'Cat Eye Elegance',
-        slug: 'cat-eye-elegance',
-        description: 'Elegant cat-eye frames for a sophisticated look.',
-        originalPriceCNY: 1450,
-        salePriceCNY: null,
-        isOnSale: false,
-        categoryId: '44444444-4444-4444-4444-444444444444',
-        images: ['https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&q=80&w=800'],
-        inStock: true,
-        featured: false,
-        variants: [],
-        gender: 'female'
-      });
-    }
-
-    set({ products: mapped, isLoading: false });
-    if (error) console.error('Error fetching products:', error);
   },
   addProduct: async (productData) => {
     const dbProduct = {

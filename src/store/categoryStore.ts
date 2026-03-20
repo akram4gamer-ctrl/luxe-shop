@@ -18,32 +18,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
     set({ isLoading: true });
     const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
     
-    let fetchedCategories = data || [];
-    
-    // Ensure Bags and Glasses are always present, even if RLS blocks inserting them
-    const bagsExists = fetchedCategories.some(c => c.slug === 'bags');
-    const glassesExists = fetchedCategories.some(c => c.slug === 'glasses');
-    
-    if (!bagsExists) {
-      fetchedCategories.push({
-        id: '33333333-3333-3333-3333-333333333333',
-        name: 'Bags',
-        slug: 'bags',
-        description: 'Luxury bags and accessories'
-      });
-    }
-    
-    if (!glassesExists) {
-      fetchedCategories.push({
-        id: '44444444-4444-4444-4444-444444444444',
-        name: 'Glasses',
-        slug: 'glasses',
-        description: 'Designer sunglasses and eyewear'
-      });
-    }
-
-    if (fetchedCategories.length > 0) {
-      set({ categories: fetchedCategories, isLoading: false });
+    if (data) {
+      set({ categories: data, isLoading: false });
     } else {
       set({ isLoading: false });
       if (error) console.error('Error fetching categories:', error);
